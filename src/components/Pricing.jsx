@@ -44,7 +44,7 @@ const plans = [
   },
 ]
 
-function Pricing() {
+function Pricing({ onChoosePlan }) {
   return (
     <section id="pricing" className="px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
       <div className="mx-auto max-w-7xl">
@@ -107,6 +107,7 @@ function Pricing() {
 
               <button
                 type="button"
+                onClick={() => onChoosePlan?.(plan.name.toLowerCase())}
                 className={`mt-8 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5 ${
                   plan.featured
                     ? 'bg-white text-slate-950 hover:bg-slate-100'

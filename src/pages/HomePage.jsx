@@ -50,6 +50,10 @@ function HomePage({ theme }) {
     window.history.replaceState({}, '', `/#${targetId}`)
   }
 
+  const handleChoosePlan = () => {
+    handleGetStarted()
+  }
+
   return (
     <>
       <main>
@@ -68,7 +72,7 @@ function HomePage({ theme }) {
           theme={theme}
           workspaceName="Commandly AI"
         />
-        <Pricing />
+        <Pricing onChoosePlan={handleChoosePlan} />
         <FinalCta onGetStarted={handleGetStarted} />
       </main>
       <Footer navLinks={navLinks} onNavClick={navigateSection} />

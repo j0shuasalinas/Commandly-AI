@@ -1,15 +1,32 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
-import { LockKeyhole, Mail, Sparkles, UserRound } from 'lucide-react'
-import SetupNotice from '../components/SetupNotice'
+import {
+  ArrowRight,
+  Github,
+  LockKeyhole,
+  Mail,
+  Sparkles,
+  UserRound,
+} from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 function AuthPage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const mode = searchParams.get('mode') === 'signin' ? 'signin' : 'signup'
+  const requestedMode = searchParams.get('mode')
+  const mode =
+    requestedMode === 'signin' || requestedMode === 'reset' ? requestedMode : 'signup'
   const navigate = useNavigate()
   const location = useLocation()
-  const { signIn, signUp, user, workspace, isSupabaseConfigured } = useAuth()
+  const {
+    signIn,
+    signInWithProvider,
+    signUp,
+    resendConfirmation,
+    sendPasswordReset,
+    user,
+    workspace,
+    isSupabaseConfigured,
+  } = useAuth()
 
   const [form, setForm] = useState({
     fullName: '',
@@ -24,7 +41,9 @@ function AuthPage() {
     () =>
       mode === 'signin'
         ? 'Sign in to your Commandly AI workspace.'
-        : 'Create your Commandly AI account.',
+        : mode === 'reset'
+          ? 'Reset your Commandly AI password.'
+          : 'Create your Commandly AI account.',
     [mode],
   )
 
@@ -38,6 +57,19 @@ function AuthPage() {
     setSearchParams({ mode: nextMode })
     setError('')
     setMessage('')
+  }
+
+  const handleProviderLogin = async (provider) => {
+    setLoading(true)
+    setError('')
+    setMessage('')
+
+    try {
+      await signInWithProvider(provider)
+    } catch (providerError) {
+      setError(providerError.message)
+      setLoading(false)
+    }
   }
 
   const updateField = (field, value) => {
@@ -61,6 +93,9 @@ function AuthPage() {
         })
         const nextPath = location.state?.from?.pathname ?? '/dashboard'
         navigate(nextPath, { replace: true })
+      } else if (mode === 'reset') {
+        await sendPasswordReset(form.email)
+        setMessage('Password reset link sent. Check your email to choose a new password.')
       } else {
         const result = await signUp({
           email: form.email,
@@ -70,9 +105,8 @@ function AuthPage() {
 
         if (!result.session) {
           setMessage(
-            'Your account was created. Check your email to confirm your address, then sign in.',
+            'Your account was created. Check your email to confirm your address before signing in.',
           )
-          setMode('signin')
         } else {
           navigate('/onboarding', { replace: true })
         }
@@ -96,11 +130,9 @@ function AuthPage() {
             {title}
           </h1>
           <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300">
-            Use email and password auth powered by Supabase, then save your
-            business workspace in Postgres.
+            Use email and password auth powered by Supabase, add social login,
+            and keep your workspace synced to Postgres.
           </p>
-
-          {!isSupabaseConfigured && <div className="mt-8"><SetupNotice /></div>}
 
           <div className="mt-8 flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-950">
             <button
@@ -116,16 +148,59 @@ function AuthPage() {
             </button>
             <button
               type="button"
+              disabled={loading}
               onClick={() => setMode('signin')}
               className={`flex-1 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                 mode === 'signin'
                   ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
                   : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white'
               }`}
-            >
-              Sign in
-            </button>
-          </div>
+                >
+                  Sign in
+                </button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => setMode('reset')}
+                  className={`flex-1 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                    mode === 'reset'
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+                      : 'text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white'
+                  }`}
+                >
+                  Reset
+                </button>
+              </div>
+
+          {mode !== 'reset' && (
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <button
+                type="button"
+                disabled={loading || !isSupabaseConfigured}
+                onClick={() => handleProviderLogin('google')}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:text-white"
+              >
+                Google
+              </button>
+              <button
+                type="button"
+                disabled={loading || !isSupabaseConfigured}
+                onClick={() => handleProviderLogin('github')}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:text-white"
+              >
+                <Github className="h-4 w-4" />
+                GitHub
+              </button>
+              <button
+                type="button"
+                disabled={loading || !isSupabaseConfigured}
+                onClick={() => handleProviderLogin('discord')}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:text-white"
+              >
+                Discord
+              </button>
+            </div>
+          )}
 
           <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
             {mode === 'signup' && (
@@ -162,21 +237,23 @@ function AuthPage() {
               </div>
             </label>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-                Password
-              </span>
-              <div className="relative">
-                <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(event) => updateField('password', event.target.value)}
-                  placeholder="Create a secure password"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-700 outline-none transition focus:border-brand-300 focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
-                />
-              </div>
-            </label>
+            {mode !== 'reset' && (
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Password
+                </span>
+                <div className="relative">
+                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="password"
+                    value={form.password}
+                    onChange={(event) => updateField('password', event.target.value)}
+                    placeholder="Create a secure password"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-700 outline-none transition focus:border-brand-300 focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                  />
+                </div>
+              </label>
+            )}
 
             {error && (
               <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300">
@@ -186,7 +263,24 @@ function AuthPage() {
 
             {message && (
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-                {message}
+                <div>{message}</div>
+                {mode === 'signup' && form.email && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await resendConfirmation(form.email)
+                        setMessage('Verification email resent. Check your inbox.')
+                      } catch (resendError) {
+                        setError(resendError.message)
+                      }
+                    }}
+                    className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-300 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/30 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+                  >
+                    Resend verification email
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             )}
 
@@ -199,24 +293,37 @@ function AuthPage() {
                 ? 'Working...'
                 : mode === 'signin'
                   ? 'Sign In'
-                  : 'Create My Account'}
+                  : mode === 'reset'
+                    ? 'Send Reset Link'
+                    : 'Create My Account'}
             </button>
+
+            {mode === 'signin' && (
+              <button
+                type="button"
+                onClick={() => setMode('reset')}
+                className="text-sm font-medium text-brand-600 transition hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200"
+              >
+                Forgot your password?
+              </button>
+            )}
           </form>
         </section>
 
         <aside className="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-card backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-darkcard sm:p-8">
           <div className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-300">
-            Backend Stack
+            Commandly Access
           </div>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
-            Your MVP now has a real auth and data architecture.
+            Sign in and pick up right where your workspace left off.
           </h2>
           <div className="mt-6 space-y-4">
             {[
-              'Supabase Auth for email and password login',
-              'Protected routes for onboarding and dashboard',
-              'Profiles and workspaces stored in Postgres',
-              'Onboarding data saved and reloaded per account',
+              'Secure email and password login',
+              'Google, GitHub, and Discord social sign-in',
+              'Password reset and email verification flow',
+              'Protected onboarding and dashboard access',
+              'Saved business profile and workspace settings',
             ].map((item) => (
               <div
                 key={item}
@@ -227,8 +334,8 @@ function AuthPage() {
             ))}
           </div>
           <p className="mt-6 text-sm leading-7 text-slate-600 dark:text-slate-300">
-            Need a Supabase project first? Follow the setup notes in the repo and
-            drop your keys into `.env.local`.
+            Create your account, finish setup, and Commandly AI will keep your
+            workspace ready every time you come back.
           </p>
           <Link
             to="/"

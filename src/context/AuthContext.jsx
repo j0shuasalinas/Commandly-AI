@@ -94,6 +94,25 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  const signInWithProvider = async (provider) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase is not configured yet.')
+    }
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+
+    if (error) {
+      throw error
+    }
+
+    return data
+  }
+
   const signUp = async ({ email, password, fullName }) => {
     if (!isSupabaseConfigured) {
       throw new Error('Supabase is not configured yet.')
@@ -106,6 +125,7 @@ export function AuthProvider({ children }) {
         data: {
           full_name: fullName,
         },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
 
@@ -119,6 +139,52 @@ export function AuthProvider({ children }) {
         email: data.user.email ?? email,
         fullName,
       })
+    }
+
+    return data
+  }
+
+  const resendConfirmation = async (email) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase is not configured yet.')
+    }
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+
+    if (error) {
+      throw error
+    }
+  }
+
+  const sendPasswordReset = async (email) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase is not configured yet.')
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    })
+
+    if (error) {
+      throw error
+    }
+  }
+
+  const updatePassword = async (password) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase is not configured yet.')
+    }
+
+    const { data, error } = await supabase.auth.updateUser({ password })
+
+    if (error) {
+      throw error
     }
 
     return data
@@ -164,8 +230,12 @@ export function AuthProvider({ children }) {
       loading,
       isSupabaseConfigured,
       signIn,
+      signInWithProvider,
       signUp,
+      resendConfirmation,
+      sendPasswordReset,
       signOut,
+      updatePassword,
       saveWorkspace,
       refreshWorkspace: () => loadWorkspace(user),
     }),

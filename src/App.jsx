@@ -3,9 +3,11 @@ import { Navigate, Route, Routes } from 'react-router'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './routes/ProtectedRoute'
 import AuthPage from './pages/AuthPage'
+import AuthCallbackPage from './pages/AuthCallbackPage'
 import DashboardPage from './pages/DashboardPage'
 import HomePage from './pages/HomePage'
 import OnboardingPage from './components/OnboardingPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 
 const THEME_KEY = 'commandly-theme'
 
@@ -39,6 +41,8 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage theme={theme} />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/onboarding"
           element={
