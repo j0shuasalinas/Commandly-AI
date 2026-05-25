@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, Route, Routes } from 'react-router'
+import { Navigate, Route, Routes, useLocation } from 'react-router'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './routes/ProtectedRoute'
 import AuthPage from './pages/AuthPage'
@@ -23,6 +23,8 @@ const getInitialTheme = () => {
 
 function App() {
   const [theme, setTheme] = useState(getInitialTheme)
+  const location = useLocation()
+  const isDashboardRoute = location.pathname === '/dashboard'
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -35,9 +37,13 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-50">
-      <div className="absolute inset-x-0 top-0 -z-10 h-[36rem] bg-[radial-gradient(circle_at_top,rgba(74,111,255,0.20),transparent_34%),radial-gradient(circle_at_18%_20%,rgba(155,92,255,0.14),transparent_28%)] dark:bg-[radial-gradient(circle_at_top,rgba(74,111,255,0.20),transparent_30%),radial-gradient(circle_at_18%_20%,rgba(155,92,255,0.16),transparent_26%)]" />
-      <Navbar theme={theme} onToggleTheme={toggleTheme} />
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-50">
+      {!isDashboardRoute && (
+        <>
+          <div className="absolute inset-x-0 top-0 -z-10 h-[36rem] bg-[radial-gradient(circle_at_top,rgba(74,111,255,0.20),transparent_34%),radial-gradient(circle_at_18%_20%,rgba(155,92,255,0.14),transparent_28%)] dark:bg-[radial-gradient(circle_at_top,rgba(74,111,255,0.20),transparent_30%),radial-gradient(circle_at_18%_20%,rgba(155,92,255,0.16),transparent_26%)]" />
+          <Navbar theme={theme} onToggleTheme={toggleTheme} />
+        </>
+      )}
       <Routes>
         <Route path="/" element={<HomePage theme={theme} />} />
         <Route path="/auth" element={<AuthPage />} />

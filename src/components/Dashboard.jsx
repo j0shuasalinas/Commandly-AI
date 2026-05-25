@@ -100,7 +100,10 @@ const zeroStateIdeas = [
 ]
 
 function Dashboard({
+  billingLoading = '',
   mode = 'live',
+  onEditSetup,
+  onManageBilling,
   ownerName,
   onSignOut,
   onToggleTheme,
@@ -118,11 +121,14 @@ function Dashboard({
   const ideas = isDemo ? demoIdeas : zeroStateIdeas
 
   return (
-    <section id="dashboard" className={isDemo ? 'px-4 py-16 sm:px-6 lg:px-8 lg:py-24' : ''}>
-      <div className={isDemo ? 'mx-auto max-w-7xl' : ''}>
-        <div className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-3 shadow-[0_24px_90px_rgba(15,23,42,0.10)] transition duration-300 dark:border-slate-800 dark:bg-[#020817]/95 dark:shadow-[0_30px_100px_rgba(2,6,23,0.52)]">
+    <section
+      id="dashboard"
+      className={isDemo ? 'px-4 py-16 sm:px-6 lg:px-8 lg:py-24' : 'min-h-screen w-screen overflow-x-hidden'}
+    >
+      <div className={isDemo ? 'mx-auto max-w-7xl' : 'w-screen overflow-x-hidden'}>
+        <div className={`border border-slate-200/80 bg-white/95 p-3 shadow-[0_24px_90px_rgba(15,23,42,0.10)] transition duration-300 dark:border-slate-800 dark:bg-[#020817]/95 dark:shadow-[0_30px_100px_rgba(2,6,23,0.52)] ${isDemo ? 'rounded-[2rem]' : 'min-h-screen rounded-none border-x-0 border-y-0 shadow-none'}`}>
           <div className="grid gap-3 xl:grid-cols-[280px_minmax(0,1fr)]">
-            <aside className="rounded-[1.6rem] bg-slate-900 p-6 text-white dark:bg-[#040916]">
+            <aside className={`bg-slate-900 p-6 text-white dark:bg-[#040916] ${isDemo ? 'rounded-[1.6rem]' : 'rounded-r-[2rem] rounded-l-none xl:min-h-[calc(100vh-1.5rem)]'}`}>
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 backdrop-blur">
                   <Sparkles className="h-5 w-5" />
@@ -160,16 +166,37 @@ function Dashboard({
                   Unlock more campaign automations, deeper analytics, and multi-user
                   workspaces.
                 </p>
-                <a
-                  href="/#pricing"
-                  className="mt-4 inline-flex rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-400"
-                >
-                  View plans
-                </a>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {onEditSetup && (
+                    <button
+                      type="button"
+                      onClick={onEditSetup}
+                      className="inline-flex rounded-2xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
+                    >
+                      Edit setup
+                    </button>
+                  )}
+                  {onManageBilling ? (
+                    <button
+                      type="button"
+                      onClick={onManageBilling}
+                      className="inline-flex rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-400"
+                    >
+                      {billingLoading === 'portal' ? 'Opening...' : 'Manage billing'}
+                    </button>
+                  ) : (
+                    <a
+                      href="/#pricing"
+                      className="inline-flex rounded-2xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-400"
+                    >
+                      View plans
+                    </a>
+                  )}
+                </div>
               </div>
             </aside>
 
-            <div className="rounded-[1.6rem] bg-slate-50 p-4 lg:p-5 dark:bg-[#071120]">
+            <div className={`bg-slate-50 p-4 lg:p-5 dark:bg-[#071120] ${isDemo ? 'rounded-[1.6rem]' : 'rounded-l-[2rem] rounded-r-none xl:min-h-[calc(100vh-1.5rem)]'}`}>
               <div className="flex flex-col gap-4 rounded-[1.4rem] border border-slate-200/80 bg-white px-4 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 sm:flex-row sm:items-center sm:justify-between">
                 <div className="relative flex-1">
                   <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -227,15 +254,39 @@ function Dashboard({
               </div>
 
               <div className="mt-6 grid gap-6">
-                <div>
-                  <h2 className="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
-                    Welcome back, {ownerName}
-                  </h2>
-                  <p className="mt-2 text-base text-slate-600 dark:text-slate-300">
-                    {isDemo
-                      ? "Here&apos;s what Commandly AI handled for your business today."
-                      : 'Your workspace is connected and ready. Start with a prompt or choose a quick action to generate your first result.'}
-                  </p>
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <h2 className="text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
+                      Welcome back, {ownerName}
+                    </h2>
+                    <p className="mt-2 text-base text-slate-600 dark:text-slate-300">
+                      {isDemo
+                        ? "Here&apos;s what Commandly AI handled for your business today."
+                        : 'Your workspace is connected and ready. Start with a prompt or choose a quick action to generate your first result.'}
+                    </p>
+                  </div>
+                  {!isDemo && (
+                    <div className="flex flex-wrap gap-3">
+                      {onEditSetup && (
+                        <button
+                          type="button"
+                          onClick={onEditSetup}
+                          className="inline-flex rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950 dark:border-slate-800 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:text-white"
+                        >
+                          Edit setup
+                        </button>
+                      )}
+                      {onManageBilling && (
+                        <button
+                          type="button"
+                          onClick={onManageBilling}
+                          className="inline-flex rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                        >
+                          {billingLoading === 'portal' ? 'Opening billing...' : 'Billing'}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
