@@ -49,7 +49,7 @@ function DashboardPage({ theme, onToggleTheme }) {
 
   return (
     <main className="px-4 py-10 sm:px-6 lg:px-8 lg:py-16">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-[1500px]">
         {!isSupabaseConfigured && <SetupNotice />}
 
         {verified && (
@@ -162,6 +162,7 @@ function DashboardPage({ theme, onToggleTheme }) {
         </div>
 
         <Dashboard
+          mode="live"
           ownerName={profile?.fullName || user?.email?.split('@')[0] || 'there'}
           onSignOut={signOut}
           onToggleTheme={onToggleTheme}

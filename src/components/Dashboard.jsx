@@ -26,11 +26,18 @@ const sidebarLinks = [
   'Settings',
 ]
 
-const statCards = [
+const demoStatCards = [
   { label: 'AI Tasks Completed', value: '128', detail: '+12% vs yesterday' },
   { label: 'New Leads', value: '24', detail: '7 hot prospects ready' },
   { label: 'Reviews Replied', value: '36', detail: '92% handled in under 1 hour' },
   { label: 'Content Created', value: '18', detail: 'Posts, emails, and ads generated' },
+]
+
+const emptyStatCards = [
+  { label: 'AI Tasks Completed', value: '0', detail: 'No automations have run yet' },
+  { label: 'New Leads', value: '0', detail: 'Your lead inbox is ready for first contacts' },
+  { label: 'Reviews Replied', value: '0', detail: 'Connect reviews to start response drafts' },
+  { label: 'Content Created', value: '0', detail: 'Generate your first campaign from the prompt box' },
 ]
 
 const quickActions = [
@@ -60,14 +67,14 @@ const quickActions = [
   },
 ]
 
-const activityRows = [
+const demoActivityRows = [
   ['AI Writer', 'Generated 5 ad variations for spring campaign', '2 min ago', 'Completed'],
   ['Reviews', 'Replied to new Google review from Amanda R.', '18 min ago', 'Approved'],
   ['Leads', 'Flagged 3 high-intent contacts for follow-up', '42 min ago', 'New'],
   ['Analytics', 'Weekly insight summary prepared for owner', '1 hr ago', 'Ready'],
 ]
 
-const messages = [
+const demoMessages = [
   {
     name: 'Avery Brooks',
     channel: 'Website lead',
@@ -80,13 +87,20 @@ const messages = [
   },
 ]
 
-const ideas = [
+const demoIdeas = [
   'Behind-the-scenes reel featuring your team at work',
   'Customer spotlight post with before-and-after transformation',
   'Limited-time referral campaign for returning clients',
 ]
 
+const zeroStateIdeas = [
+  'Welcome series email introducing your brand',
+  'First-week social announcement for new customers',
+  'FAQ post answering common customer questions',
+]
+
 function Dashboard({
+  mode = 'live',
   ownerName,
   onSignOut,
   onToggleTheme,
@@ -97,20 +111,25 @@ function Dashboard({
   workspaceType = 'Business workspace',
 }) {
   const isInteractive = Boolean(setPromptValue)
+  const isDemo = mode === 'demo'
+  const statCards = isDemo ? demoStatCards : emptyStatCards
+  const activityRows = isDemo ? demoActivityRows : []
+  const messages = isDemo ? demoMessages : []
+  const ideas = isDemo ? demoIdeas : zeroStateIdeas
 
   return (
-    <section id="dashboard" className="px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-      <div className="mx-auto max-w-7xl">
+    <section id="dashboard" className={isDemo ? 'px-4 py-16 sm:px-6 lg:px-8 lg:py-24' : ''}>
+      <div className={isDemo ? 'mx-auto max-w-7xl' : ''}>
         <div className="rounded-[2rem] border border-slate-200/80 bg-white/95 p-3 shadow-[0_24px_90px_rgba(15,23,42,0.10)] transition duration-300 dark:border-slate-800 dark:bg-[#020817]/95 dark:shadow-[0_30px_100px_rgba(2,6,23,0.52)]">
-          <div className="grid gap-3 xl:grid-cols-[260px_1fr]">
+          <div className="grid gap-3 xl:grid-cols-[280px_minmax(0,1fr)]">
             <aside className="rounded-[1.6rem] bg-slate-900 p-6 text-white dark:bg-[#040916]">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 backdrop-blur">
                   <Sparkles className="h-5 w-5" />
                 </div>
-                <div>
-                  <div className="font-semibold">{workspaceName}</div>
-                  <div className="text-sm text-slate-300">{workspaceType}</div>
+                <div className="min-w-0">
+                  <div className="truncate font-semibold">{workspaceName}</div>
+                  <div className="truncate text-sm text-slate-300">{workspaceType}</div>
                 </div>
               </div>
 
@@ -150,7 +169,7 @@ function Dashboard({
               </div>
             </aside>
 
-            <div className="rounded-[1.6rem] bg-slate-50 p-4 dark:bg-[#071120]">
+            <div className="rounded-[1.6rem] bg-slate-50 p-4 lg:p-5 dark:bg-[#071120]">
               <div className="flex flex-col gap-4 rounded-[1.4rem] border border-slate-200/80 bg-white px-4 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/90 sm:flex-row sm:items-center sm:justify-between">
                 <div className="relative flex-1">
                   <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -213,11 +232,13 @@ function Dashboard({
                     Welcome back, {ownerName}
                   </h2>
                   <p className="mt-2 text-base text-slate-600 dark:text-slate-300">
-                    Here&apos;s what Commandly AI handled for your business today.
+                    {isDemo
+                      ? "Here&apos;s what Commandly AI handled for your business today."
+                      : 'Your workspace is connected and ready. Start with a prompt or choose a quick action to generate your first result.'}
                   </p>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
                   {statCards.map((card) => (
                     <div
                       key={card.label}
@@ -236,7 +257,7 @@ function Dashboard({
                   ))}
                 </div>
 
-                <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+                <div className="grid gap-6 2xl:grid-cols-[1.35fr_0.65fr]">
                   <div className="rounded-[1.6rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                     <div className="flex items-center gap-3">
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-300">
@@ -288,35 +309,53 @@ function Dashboard({
                           Weekly Performance
                         </h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                          Clean snapshot of activity across AI workflows.
+                          {isDemo
+                            ? 'Clean snapshot of activity across AI workflows.'
+                            : 'Performance will appear here after your first AI actions start running.'}
                         </p>
                       </div>
                       <LineChart className="h-5 w-5 text-brand-500" />
                     </div>
 
-                    <div className="mt-6 h-52 rounded-[1.5rem] border border-slate-200 bg-[linear-gradient(to_top,rgba(74,111,255,0.08),transparent),linear-gradient(to_right,rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.12)_1px,transparent_1px)] bg-[size:auto,48px_48px,48px_48px] p-4 dark:border-slate-800 dark:bg-[linear-gradient(to_top,rgba(74,111,255,0.12),transparent),linear-gradient(to_right,rgba(51,65,85,0.38)_1px,transparent_1px),linear-gradient(to_bottom,rgba(51,65,85,0.38)_1px,transparent_1px)]">
-                      <div className="flex h-full items-end gap-4">
-                        {[45, 70, 58, 88, 64, 94, 82].map((height, index) => (
-                          <div key={index} className="flex-1">
-                            <div
-                              className="rounded-t-2xl bg-gradient-to-t from-brand-600 to-accent-400"
-                              style={{ height: `${height}%` }}
-                            />
+                    {isDemo ? (
+                      <>
+                        <div className="mt-6 h-52 rounded-[1.5rem] border border-slate-200 bg-[linear-gradient(to_top,rgba(74,111,255,0.08),transparent),linear-gradient(to_right,rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.12)_1px,transparent_1px)] bg-[size:auto,48px_48px,48px_48px] p-4 dark:border-slate-800 dark:bg-[linear-gradient(to_top,rgba(74,111,255,0.12),transparent),linear-gradient(to_right,rgba(51,65,85,0.38)_1px,transparent_1px),linear-gradient(to_bottom,rgba(51,65,85,0.38)_1px,transparent_1px)]">
+                          <div className="flex h-full items-end gap-4">
+                            {[45, 70, 58, 88, 64, 94, 82].map((height, index) => (
+                              <div key={index} className="flex-1">
+                                <div
+                                  className="rounded-t-2xl bg-gradient-to-t from-brand-600 to-accent-400"
+                                  style={{ height: `${height}%` }}
+                                />
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                        </div>
 
-                    <div className="mt-4 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
-                      <span>7-day AI activity</span>
-                      <span className="font-medium text-brand-600 dark:text-brand-300">
-                        +18.4%
-                      </span>
-                    </div>
+                        <div className="mt-4 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+                          <span>7-day AI activity</span>
+                          <span className="font-medium text-brand-600 dark:text-brand-300">
+                            +18.4%
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="mt-6 flex h-64 items-center justify-center rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 text-center dark:border-slate-800 dark:bg-slate-950">
+                        <div className="max-w-xs">
+                          <div className="text-base font-semibold text-slate-900 dark:text-white">
+                            No analytics yet
+                          </div>
+                          <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                            Run your first prompts, campaigns, or replies and your live
+                            performance chart will show up here.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+                <div className="grid gap-6 2xl:grid-cols-[1.25fr_0.75fr]">
                   <div className="rounded-[1.6rem] border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/90">
                     <div className="flex items-center justify-between">
                       <div>
@@ -324,7 +363,9 @@ function Dashboard({
                           Recent Activity
                         </h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                          A live feed of what your workspace completed today.
+                          {isDemo
+                            ? 'A live feed of what your workspace completed today.'
+                            : 'Once activity starts, your latest AI runs and workflow updates will appear here.'}
                         </p>
                       </div>
                       <button
@@ -336,45 +377,57 @@ function Dashboard({
                       </button>
                     </div>
 
-                    <div className="mt-5 overflow-x-auto">
-                      <table className="min-w-full text-left">
-                        <thead>
-                          <tr className="border-b border-slate-200 dark:border-slate-800">
-                            {['Module', 'Activity', 'Time', 'Status'].map((heading) => (
-                              <th
-                                key={heading}
-                                className="pb-4 pr-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
-                              >
-                                {heading}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {activityRows.map((row) => (
-                            <tr
-                              key={row[1]}
-                              className="border-b border-slate-100 last:border-0 dark:border-slate-800/70"
-                            >
-                              <td className="py-4 pr-4 text-sm font-medium text-slate-900 dark:text-white">
-                                {row[0]}
-                              </td>
-                              <td className="py-4 pr-4 text-sm text-slate-600 dark:text-slate-300">
-                                {row[1]}
-                              </td>
-                              <td className="py-4 pr-4 text-sm text-slate-500 dark:text-slate-400">
-                                {row[2]}
-                              </td>
-                              <td className="py-4">
-                                <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
-                                  {row[3]}
-                                </span>
-                              </td>
+                    {activityRows.length > 0 ? (
+                      <div className="mt-5 overflow-x-auto">
+                        <table className="min-w-full text-left">
+                          <thead>
+                            <tr className="border-b border-slate-200 dark:border-slate-800">
+                              {['Module', 'Activity', 'Time', 'Status'].map((heading) => (
+                                <th
+                                  key={heading}
+                                  className="pb-4 pr-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400"
+                                >
+                                  {heading}
+                                </th>
+                              ))}
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {activityRows.map((row) => (
+                              <tr
+                                key={row[1]}
+                                className="border-b border-slate-100 last:border-0 dark:border-slate-800/70"
+                              >
+                                <td className="py-4 pr-4 text-sm font-medium text-slate-900 dark:text-white">
+                                  {row[0]}
+                                </td>
+                                <td className="py-4 pr-4 text-sm text-slate-600 dark:text-slate-300">
+                                  {row[1]}
+                                </td>
+                                <td className="py-4 pr-4 text-sm text-slate-500 dark:text-slate-400">
+                                  {row[2]}
+                                </td>
+                                <td className="py-4">
+                                  <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 dark:bg-brand-500/10 dark:text-brand-300">
+                                    {row[3]}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="mt-5 rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
+                        <div className="text-base font-semibold text-slate-900 dark:text-white">
+                          No activity yet
+                        </div>
+                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                          Your recent actions, generated content, and workflow updates
+                          will start populating after the first run.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid gap-6">
@@ -398,26 +451,38 @@ function Dashboard({
                       <h3 className="text-lg font-semibold text-slate-950 dark:text-white">
                         Customer Messages
                       </h3>
-                      <div className="mt-4 space-y-4">
-                        {messages.map((message) => (
-                          <div
-                            key={message.name}
-                            className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800"
-                          >
-                            <div className="flex items-center justify-between gap-3">
-                              <div className="font-medium text-slate-900 dark:text-white">
-                                {message.name}
+                      {messages.length > 0 ? (
+                        <div className="mt-4 space-y-4">
+                          {messages.map((message) => (
+                            <div
+                              key={message.name}
+                              className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="font-medium text-slate-900 dark:text-white">
+                                  {message.name}
+                                </div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400">
+                                  {message.channel}
+                                </div>
                               </div>
-                              <div className="text-xs text-slate-500 dark:text-slate-400">
-                                {message.channel}
-                              </div>
+                              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                {message.text}
+                              </p>
                             </div>
-                            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                              {message.text}
-                            </p>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="mt-4 rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 px-5 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
+                          <div className="text-base font-semibold text-slate-900 dark:text-white">
+                            No customer messages yet
                           </div>
-                        ))}
-                      </div>
+                          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                            Connect inboxes or reviews and incoming conversations will
+                            show up here.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

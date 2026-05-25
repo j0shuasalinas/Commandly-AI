@@ -66,6 +66,7 @@ function HomePage({ theme }) {
         <Features />
         <HowItWorks />
         <Dashboard
+          mode="demo"
           ownerName="Josh"
           promptValue={promptValue}
           setPromptValue={setPromptValue}
