@@ -3,6 +3,7 @@ import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import {
   fetchWorkspaceForUser,
   saveWorkspaceForUser,
+  updateWorkspaceForUser,
   upsertProfileForUser,
 } from '../lib/workspace'
 
@@ -220,6 +221,18 @@ export function AuthProvider({ children }) {
     return nextWorkspace
   }
 
+  const updateWorkspace = async (payload) => {
+    if (!user) {
+      throw new Error('You must be signed in to update a workspace.')
+    }
+
+    const nextWorkspace = await updateWorkspaceForUser(user.id, payload)
+    setWorkspace(nextWorkspace)
+    setWorkspaceGoals(nextWorkspace?.goals ?? [])
+
+    return nextWorkspace
+  }
+
   const value = useMemo(
     () => ({
       session,
@@ -237,6 +250,7 @@ export function AuthProvider({ children }) {
       signOut,
       updatePassword,
       saveWorkspace,
+      updateWorkspace,
       refreshWorkspace: () => loadWorkspace(user),
     }),
     [loading, profile, session, user, workspace, workspaceGoals],

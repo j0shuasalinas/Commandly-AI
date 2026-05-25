@@ -84,6 +84,8 @@ export async function saveWorkspaceForUser(userId, payload) {
     business_type: payload.businessType,
     website_url: payload.websiteUrl,
     business_email: payload.businessEmail,
+    phone: payload.phone ?? null,
+    logo_url: payload.logoUrl ?? null,
     brand_voice: payload.brandVoice,
     setup_complete: true,
   }
@@ -154,4 +156,44 @@ export async function saveWorkspaceForUser(userId, payload) {
   }
 
   return fetchWorkspaceForUser(userId)
+}
+
+export async function updateWorkspaceForUser(userId, payload) {
+  const updatePayload = {
+    business_email: payload.businessEmail,
+    business_name: payload.businessName,
+    business_type: payload.businessType,
+    brand_voice: payload.brandVoice,
+    logo_url: payload.logoUrl ?? null,
+    phone: payload.phone ?? null,
+    website_url: payload.websiteUrl,
+  }
+
+  const response = await withTimeout(
+    supabase
+      .from('workspaces')
+      .update(updatePayload)
+      .eq('owner_id', userId)
+      .select('*')
+      .single(),
+    'Updating your workspace profile took too long. Please try again.',
+  )
+
+  if (response.error) {
+    throw response.error
+  }
+
+  const goalsResponse = await withTimeout(
+    supabase.from('workspace_goals').select('goal_key').eq('workspace_id', response.data.id),
+    'Loading your updated workspace goals took too long. Please try again.',
+  )
+
+  if (goalsResponse.error) {
+    throw goalsResponse.error
+  }
+
+  return attachGoalsToWorkspace(
+    response.data,
+    goalsResponse.data?.map((goal) => goal.goal_key) ?? [],
+  )
 }

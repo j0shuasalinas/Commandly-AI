@@ -24,7 +24,7 @@ const getInitialTheme = () => {
 function App() {
   const [theme, setTheme] = useState(getInitialTheme)
   const location = useLocation()
-  const isDashboardRoute = location.pathname === '/dashboard'
+  const isDashboardRoute = location.pathname.startsWith('/dashboard')
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -58,7 +58,7 @@ function App() {
           }
         />
         <Route
-          path="/dashboard"
+          path="/dashboard/*"
           element={
             <ProtectedRoute>
               <DashboardPage theme={theme} onToggleTheme={toggleTheme} />
