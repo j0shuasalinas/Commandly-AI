@@ -413,6 +413,23 @@ export async function createDraftForWorkspace(workspaceId, payload) {
   return response.data
 }
 
+export async function deleteDraftForWorkspace(workspaceId, draftId) {
+  const response = await withTimeout(
+    supabase
+      .from('workspace_ai_drafts')
+      .delete()
+      .eq('workspace_id', workspaceId)
+      .eq('id', draftId),
+    'Deleting the draft took too long. Please try again.',
+  )
+
+  if (response.error) {
+    requireTable(response.error, 'workspace_ai_drafts')
+  }
+
+  return true
+}
+
 export async function updateIntegrationForWorkspace(workspaceId, integrationId, payload) {
   const response = await withTimeout(
     supabase

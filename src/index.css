@@ -23,6 +23,83 @@ body {
   background: rgba(74, 111, 255, 0.22);
 }
 
+.loader-grid {
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.7), transparent 78%);
+}
+
+.loader-ring {
+  animation: loader-spin 2.8s linear infinite;
+}
+
+.loader-ring-delay {
+  animation-direction: reverse;
+  animation-duration: 2.2s;
+}
+
+.loader-progress {
+  animation: loader-progress 1.8s ease-in-out infinite;
+}
+
+.loader-pulse-dot {
+  animation: loader-pulse 1.4s ease-in-out infinite;
+}
+
+.loader-orb {
+  animation: loader-float 9s ease-in-out infinite;
+}
+
+@keyframes loader-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader-progress {
+  0% {
+    transform: translateX(-60%);
+  }
+
+  50% {
+    transform: translateX(65%);
+  }
+
+  100% {
+    transform: translateX(180%);
+  }
+}
+
+@keyframes loader-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes loader-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -18px, 0);
+  }
+}
+
 @layer base {
   body {
     @apply text-slate-900 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-50;

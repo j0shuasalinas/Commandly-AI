@@ -10,6 +10,7 @@ import {
   createDraftForWorkspace,
   createLeadForWorkspace,
   createTeamMemberForWorkspace,
+  deleteDraftForWorkspace,
   fetchDashboardCollections,
   updateAutomationForWorkspace,
   updateBillingStateForWorkspace,
@@ -305,21 +306,21 @@ function DashboardPage({ theme, onToggleTheme }) {
     }))
   }
 
-  const handleCreateLead = async () => {
+  const handleCreateLead = async (leadInput = {}) => {
     if (!workspace?.id) {
       return
     }
 
     try {
       const nextLead = await createLeadForWorkspace(workspace.id, {
-        email: 'hello@newlead.co',
-        last_contact: 'Not contacted',
-        name: 'New Lead',
-        next_step: 'Generate follow-up',
-        note: 'Added from the lead modal for workspace testing.',
-        phone: '(555) 111-2299',
-        source: 'Manual',
-        status: 'New',
+        email: leadInput.email || 'hello@newlead.co',
+        last_contact: leadInput.last_contact || 'Not contacted',
+        name: leadInput.name || 'New Lead',
+        next_step: leadInput.next_step || 'Generate follow-up',
+        note: leadInput.note || 'Added from the lead modal for workspace testing.',
+        phone: leadInput.phone || '(555) 111-2299',
+        source: leadInput.source || 'Manual',
+        status: leadInput.status || 'New',
       })
 
       setDashboardState((current) => ({
@@ -327,21 +328,21 @@ function DashboardPage({ theme, onToggleTheme }) {
         error: '',
         leads: [nextLead, ...current.leads],
       }))
+      return nextLead
     } catch (error) {
       setError(error.message)
+      throw error
     }
   }
 
-  const handleMarkLeadContacted = async (leadId) => {
+  const handleUpdateLead = async (leadId, leadPayload = {}) => {
     if (!workspace?.id) {
       return
     }
 
     try {
       const nextLead = await updateLeadForWorkspace(workspace.id, leadId, {
-        last_contact: 'Just now',
-        next_step: 'Send proposal',
-        status: 'Contacted',
+        ...leadPayload,
       })
 
       setDashboardState((current) => ({
@@ -349,23 +350,47 @@ function DashboardPage({ theme, onToggleTheme }) {
         error: '',
         leads: current.leads.map((lead) => (lead.id === leadId ? nextLead : lead)),
       }))
+      return nextLead
     } catch (error) {
       setError(error.message)
+      throw error
     }
   }
 
-  const handleCreateCampaign = async (campaignType) => {
+  const handleMarkLeadContacted = async (leadId) =>
+    handleUpdateLead(leadId, {
+      last_contact: 'Just now',
+      next_step: 'Send proposal',
+      status: 'Contacted',
+    })
+
+  const handleCreateCampaign = async (campaignInput) => {
     if (!workspace?.id) {
       return
     }
 
+    const channel = typeof campaignInput === 'string' ? campaignInput : campaignInput?.channel || 'Social Media'
+    const name =
+      typeof campaignInput === 'string'
+        ? `${campaignInput} Launch Builder`
+        : campaignInput?.name || `${channel} Launch Builder`
+    const performance =
+      typeof campaignInput === 'string'
+        ? { clicks: '0', conversions: '0', reach: '0' }
+        : campaignInput?.performance || { clicks: '0', conversions: '0', reach: '0' }
+    const scheduledDate =
+      typeof campaignInput === 'string'
+        ? 'June 5, 2026'
+        : campaignInput?.scheduled_date || 'June 5, 2026'
+    const status = typeof campaignInput === 'string' ? 'Draft' : campaignInput?.status || 'Draft'
+
     try {
       const nextCampaign = await createCampaignForWorkspace(workspace.id, {
-        channel: campaignType,
-        name: `${campaignType} Launch Builder`,
-        performance: { clicks: '0', conversions: '0', reach: '0' },
-        scheduled_date: 'June 5, 2026',
-        status: 'Draft',
+        channel,
+        name,
+        performance,
+        scheduled_date: scheduledDate,
+        status,
       })
 
       const nextBillingState =
@@ -461,6 +486,62 @@ function DashboardPage({ theme, onToggleTheme }) {
     }
   }
 
+  const handleDuplicateDraft = async (draft) => {
+    if (!workspace?.id) {
+      return
+    }
+
+    try {
+      const nextDraft = await createDraftForWorkspace(workspace.id, {
+        goal: draft.goal,
+        output: draft.output,
+        prompt: draft.prompt,
+        template: draft.template,
+        title: `${draft.title} Copy`,
+        tone: draft.tone,
+      })
+
+      const nextBillingState =
+        dashboardState.billingState &&
+        (await updateBillingStateForWorkspace(workspace.id, {
+          prompts_used: dashboardState.drafts.length + 1,
+        }))
+
+      setDashboardState((current) => ({
+        ...current,
+        billingState: nextBillingState || current.billingState,
+        drafts: [nextDraft, ...current.drafts],
+        error: '',
+      }))
+    } catch (error) {
+      setError(error.message)
+    }
+  }
+
+  const handleDeleteDraft = async (draftId) => {
+    if (!workspace?.id) {
+      return
+    }
+
+    try {
+      await deleteDraftForWorkspace(workspace.id, draftId)
+      const nextBillingState =
+        dashboardState.billingState &&
+        (await updateBillingStateForWorkspace(workspace.id, {
+          prompts_used: Math.max(dashboardState.drafts.length - 1, 0),
+        }))
+
+      setDashboardState((current) => ({
+        ...current,
+        billingState: nextBillingState || current.billingState,
+        drafts: current.drafts.filter((draft) => draft.id !== draftId),
+        error: '',
+      }))
+    } catch (error) {
+      setError(error.message)
+    }
+  }
+
   const handleToggleIntegration = async (integration) => {
     if (!workspace?.id || integration.status === 'Coming Soon') {
       return
@@ -482,6 +563,38 @@ function DashboardPage({ theme, onToggleTheme }) {
       }))
     } catch (error) {
       setError(error.message)
+    }
+  }
+
+  const handleSendDraftToCampaigns = async ({ channel, name }) => {
+    if (!workspace?.id) {
+      return
+    }
+
+    try {
+      const nextCampaign = await createCampaignForWorkspace(workspace.id, {
+        channel,
+        name,
+        performance: { clicks: '0', conversions: '0', reach: '0' },
+        scheduled_date: 'Draft campaign',
+        status: 'Draft',
+      })
+
+      const nextBillingState =
+        dashboardState.billingState &&
+        (await updateBillingStateForWorkspace(workspace.id, {
+          campaigns_created: dashboardState.campaigns.length + 1,
+        }))
+
+      setDashboardState((current) => ({
+        ...current,
+        billingState: nextBillingState || current.billingState,
+        campaigns: [nextCampaign, ...current.campaigns],
+        error: '',
+      }))
+    } catch (error) {
+      setError(error.message)
+      throw error
     }
   }
 
@@ -657,8 +770,11 @@ function DashboardPage({ theme, onToggleTheme }) {
                 element={
                   <AIWriter
                     drafts={dashboardState.drafts}
+                    onDeleteDraft={handleDeleteDraft}
+                    onDuplicateDraft={handleDuplicateDraft}
                     onGenerate={handleGenerateText}
                     onSaveDraft={handleSaveDraft}
+                    onSendToCampaigns={handleSendDraftToCampaigns}
                     workspace={workspace}
                   />
                 }
@@ -685,6 +801,8 @@ function DashboardPage({ theme, onToggleTheme }) {
                     loading={dashboardState.loading}
                     onAddLead={handleCreateLead}
                     onMarkAsContacted={handleMarkLeadContacted}
+                    onUpdateLead={handleUpdateLead}
+                    workspace={workspace}
                   />
                 }
               />

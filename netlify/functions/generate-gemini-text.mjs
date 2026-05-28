@@ -23,7 +23,19 @@ function buildSystemPrompt(payload) {
       : null,
     mode === 'overview'
       ? 'Return concise, practical business insights in short bullet-style prose that a founder can act on immediately.'
-      : 'Return polished, high-converting marketing copy with clean formatting and no markdown tables.',
+      : [
+          'Return polished, high-converting marketing copy with clean formatting and no markdown tables.',
+          'Keep the response highly scannable and concise.',
+          'For writer mode, format the response exactly like this:',
+          'Headline: <short title>',
+          'Primary Copy: <one polished draft>',
+          'Alt Copy 1: <shorter variation>',
+          'Alt Copy 2: <shorter variation>',
+          'Call To Action: <one line call to action>',
+          'Hashtags: <single line, optional if useful>',
+          'Do not include introductions like "Here are a few options."',
+          'Do not include more than 3 copy variations total.',
+        ].join('\n'),
     `User request: ${prompt}`,
   ]
     .filter(Boolean)
